@@ -7,22 +7,6 @@ on:
     branches:
       - master
 jobs:
-  build_web:
-    name: Build Flutter (Web)
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v1
-    - uses: subosito/flutter-action@v1
-      with:
-          channel: 'dev'
-    - run: flutter pub get
-    - run: flutter config --enable-web
-    - run: flutter build web
-    - name: Archive Production Artifact
-      uses: actions/upload-artifact@master
-      with:
-        name: web-build
-        path: build/web
   build_ios:
     name: Build Flutter (iOS)
     runs-on: macOS-latest
@@ -62,63 +46,6 @@ jobs:
       with:
         name: apk-build
         path: build/app/outputs/apk/release
-  deploy_web:
-    name: Deploy Web to Firebase Hosting
-    needs: build_web
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@master
-      - name: Download Artifact
-        uses: actions/download-artifact@master
-        with:
-          name: web-build
-          path: web-build
-      - name: Deploy to Firebase
-        uses: w9jds/firebase-action@master
-        with:
-          args: deploy --only hosting --public web-build
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-          PROJECT_ID: default
-#   deploy_ios:
-#     name: Deploy iOS Beta
-#     needs: [build_ios]
-#     runs-on: macOS-latest
-#     steps:
-#       - uses: actions/checkout@v1
-#       - uses: subosito/flutter-action@v1
-#         with:
-#           channel: 'dev'
-#       - run:  mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
-#       - uses: webfactory/ssh-agent@v0.1.1
-#         with:
-#           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-#       - uses: maierj/fastlane-action@v0.9.5
-#         with:
-#           lane: 'beta'
-#           subdirectory: 'ios'
-#         env:
-#           GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-#   deploy_apk:
-#     name: Deploy Android Beta
-#     needs: [build_apk]
-#     runs-on: ubuntu-latest
-#     steps:
-#       - uses: actions/checkout@v1
-#       - uses: actions/setup-java@v1
-#         with:
-#           java-version: '12.x'
-#       - uses: subosito/flutter-action@v1
-#         with:
-#           channel: 'dev'
-#       - uses: maierj/fastlane-action@v0.9.5
-#         with:
-#           lane: 'beta'
-#           subdirectory: 'android'
-#         env:
-#           GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   beta_ios:
     name: Upload iOS Beta to Firebase App Distribution
     needs: [build_ios]
@@ -161,3 +88,41 @@ jobs:
         token: ${{secrets.FIREBASE_TOKEN}}
         group: testers
         file: app-release.aap
+#   deploy_ios:
+#     name: Deploy iOS Beta
+#     needs: [build_ios]
+#     runs-on: macOS-latest
+#     steps:
+#       - uses: actions/checkout@v1
+#       - uses: subosito/flutter-action@v1
+#         with:
+#           channel: 'dev'
+#       - run:  mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+#       - uses: webfactory/ssh-agent@v0.1.1
+#         with:
+#           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+#       - uses: maierj/fastlane-action@v0.9.5
+#         with:
+#           lane: 'beta'
+#           subdirectory: 'ios'
+#         env:
+#           GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+#   deploy_apk:
+#     name: Deploy Android Beta
+#     needs: [build_apk]
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v1
+#       - uses: actions/setup-java@v1
+#         with:
+#           java-version: '12.x'
+#       - uses: subosito/flutter-action@v1
+#         with:
+#           channel: 'dev'
+#       - uses: maierj/fastlane-action@v0.9.5
+#         with:
+#           lane: 'beta'
+#           subdirectory: 'android'
+#         env:
+#           GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
